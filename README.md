@@ -1,2 +1,2 @@
 # GAN
-Generating synthetic data using SpeakingFaces dataset
+Thermal images generating using generative adversarial network
