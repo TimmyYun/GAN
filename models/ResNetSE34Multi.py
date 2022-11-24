@@ -9,7 +9,6 @@ class ResNet(nn.Module):
 
     def __init__(self, block, layers, num_filters, nOut=512, **kwargs):
         super(ResNet, self).__init__()
-#         breakpoint()
         print('Embedding size is %d' % (nOut))
         self.inplanes = num_filters[0]
         self.num_images = kwargs["num_images"]

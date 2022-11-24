@@ -127,45 +127,25 @@ def find_option_type(key, parser):
             return opt.type
     raise ValueError
 
-import math
-
-## To get size of the model
-def convert_size(size_bytes):
-    if size_bytes == 0:
-        return "0B"
-    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-    i = int(math.floor(math.log(size_bytes, 1024)))
-    p = math.pow(1024, i)
-    s = round(size_bytes / p, 2)
-    return "%s %s" % (s, size_name[i])    
-
 ## ===== ===== ===== ===== ===== ===== ===== =====
 ## Trainer script
 ## ===== ===== ===== ===== ===== ===== ===== =====
 
 def main_worker(gpu, ngpus_per_node, args):
     args.gpu = gpu
-    print(gpu)
-    ## Load models
     
+    ## Load models
+    print(f'Loading model on GPU: {gpu}')
     s = SpeakerNet(**vars(args));
     num_params = 0
     for param in s.parameters():
         num_params += param.numel()
-    print('[Network %s] Total number of parameters : %.3f M' % ('ResNet', num_params / 1e6))
+    
+    print(f'[Network] Total number of parameters : {num_params / 1e6} M')
     with open(args.result_save_path + '/parameters.txt', 'w') as f:
-        f.write("%s\n" % num_params)    
-    
-    
-    
-    print('-----------------------------------------------')        
+        f.write("%s\n" % num_params)
 
-    mem_params = sum([param.nelement()*param.element_size() for param in s.parameters()])
-    mem_bufs = sum([buf.nelement()*buf.element_size() for buf in s.buffers()])
-    mem = mem_params + mem_bufs # in bytes
-    print(convert_size(mem))
-    
-    print('-----------------------------------------------')        
+    print('----------------------------------------------------------------------------------------------')        
 
     
     if args.distributed:
@@ -184,6 +164,11 @@ def main_worker(gpu, ngpus_per_node, args):
     else:
         s = WrappedModel(s).cuda(args.gpu)
 
+        
+    pytorch_total_params = sum(p.numel() for p in s.module.__S__.parameters())
+
+    print('Total parameters: ', pytorch_total_params)
+            
     it = 1
     print("Iter " + str(it))
 
@@ -315,10 +300,6 @@ def main_worker(gpu, ngpus_per_node, args):
         train_sampler.set_epoch(it)
 
         clr = [x['lr'] for x in trainer.__optimizer__.param_groups]
-        mem_params = sum([param.nelement()*param.element_size() for param in s.parameters()])
-        mem_bufs = sum([buf.nelement()*buf.element_size() for buf in s.buffers()])
-        mem = mem_params + mem_bufs # in bytes
-        print(convert_size(mem))
     
         loss, traineer = trainer.train_network(train_loader, verbose=(args.gpu == 0));
 
@@ -384,11 +365,11 @@ def main(args):
         os.makedirs(args.result_save_path)
 
     n_gpus = torch.cuda.device_count()
-
-    print('Python Version:', sys.version)
-    print('PyTorch Version:', torch.__version__)
-    print('Number of GPUs:', torch.cuda.device_count())
-    print('Save path:', args.save_path)
+    print(f'Python Version: {sys.version}')
+    print(f'PyTorch Version: {torch.__version__}')
+    print(f'Number of GPUs: {torch.cuda.device_count()}')
+    print(f'Save path: {args.save_path}')
+    print('----------------------------------------------------------------------------------------------')        
 
     if args.distributed:
             mp.spawn(main_worker, nprocs=n_gpus, args=(n_gpus, args))
@@ -420,14 +401,15 @@ if __name__ == '__main__':
     ### To select a specific GPU available
     gpu_id = args.gpu_id
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
-    print(os.environ["CUDA_VISIBLE_DEVICES"])
+    print('----------------------------------------------------------------------------------------------')            
+    print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
     ### To select a specific seed for reproducibility
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     numpy.random.seed(args.seed)
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-    torch.set_deterministic(True)  # for pytorch version 1.7
+#     torch.set_deterministic(True)  # for pytorch version 1.7
     torch.backends.cudnn.benchmark = False
-    #torch.use_deterministic_algorithms(True) #for pytorch version 1.8
+    torch.use_deterministic_algorithms(True) #for pytorch version 1.8
 
     main(args)
