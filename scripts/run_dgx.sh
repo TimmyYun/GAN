@@ -1,7 +1,7 @@
 train_path="/workspace/madina_abdrakhmanova/datasets/"
 test_path="/workspace/madina_abdrakhmanova/datasets/"
 
-train_list="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/train_list_100_percent.txt"
+train_list="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/train_list_20_percent.txt"
 valid_list="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/valid_list_v2.txt"
 test_list="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/test_list_v2.txt"
 
@@ -9,14 +9,14 @@ test_list="/workspace/timur_unaspekov/projects/trimodal_person_verification/meta
 
 run_file="/workspace/timur_unaspekov/projects/trimodal_person_verification/trainSpeakerNet.py"
 
-train_lists_save_path="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/meta_100_percent/train"
+train_lists_save_path="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/meta_20_percent/train"
 eval_lists_save_path="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/meta_sf"
 # eval_lists_save_path="/workspace/timur_unaspekov/projects/trimodal_person_verification/metadata/meta_vc"
 
 var_eval_frames=400
 var_max_frames=200
 var_nspeaker=2
-var_bsize=2000
+var_bsize=100
 var_encoder=SAP
 var_fun=angleproto
 var_num_images=1
@@ -32,7 +32,7 @@ var_decay=0
 
 var_seed=1
 # initial_model=20
-exp=174
+exp=200
 save_path="/workspace/timur_unaspekov/meta/results/$var_modality/exp$exp"
 
 # save_path="/workspace/timur_unaspekov/clean_clean/$var_modality/exp$exp"

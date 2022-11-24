@@ -30,9 +30,9 @@ var_modality="wavrgbthr"
 
 var_decay=0
 
-var_seed=1
+var_seed=2
 # initial_model=20
-exp=169
+exp=172
 save_path="/workspace/timur_unaspekov/meta/results/$var_modality/exp$exp"
 
 # save_path="/workspace/timur_unaspekov/clean_clean/$var_modality/exp$exp"

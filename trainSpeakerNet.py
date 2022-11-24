@@ -127,6 +127,17 @@ def find_option_type(key, parser):
             return opt.type
     raise ValueError
 
+import math
+
+## To get size of the model
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])    
 
 ## ===== ===== ===== ===== ===== ===== ===== =====
 ## Trainer script
@@ -138,7 +149,25 @@ def main_worker(gpu, ngpus_per_node, args):
     ## Load models
     
     s = SpeakerNet(**vars(args));
-        
+    num_params = 0
+    for param in s.parameters():
+        num_params += param.numel()
+    print('[Network %s] Total number of parameters : %.3f M' % ('ResNet', num_params / 1e6))
+    with open(args.result_save_path + '/parameters.txt', 'w') as f:
+        f.write("%s\n" % num_params)    
+    
+    
+    
+    print('-----------------------------------------------')        
+
+    mem_params = sum([param.nelement()*param.element_size() for param in s.parameters()])
+    mem_bufs = sum([buf.nelement()*buf.element_size() for buf in s.buffers()])
+    mem = mem_params + mem_bufs # in bytes
+    print(convert_size(mem))
+    
+    print('-----------------------------------------------')        
+
+    
     if args.distributed:
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = args.port
@@ -286,7 +315,11 @@ def main_worker(gpu, ngpus_per_node, args):
         train_sampler.set_epoch(it)
 
         clr = [x['lr'] for x in trainer.__optimizer__.param_groups]
-
+        mem_params = sum([param.nelement()*param.element_size() for param in s.parameters()])
+        mem_bufs = sum([buf.nelement()*buf.element_size() for buf in s.buffers()])
+        mem = mem_params + mem_bufs # in bytes
+        print(convert_size(mem))
+    
         loss, traineer = trainer.train_network(train_loader, verbose=(args.gpu == 0));
 
         if args.gpu == 0:
